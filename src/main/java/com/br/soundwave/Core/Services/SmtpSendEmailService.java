@@ -28,7 +28,7 @@ public class SmtpSendEmailService implements SendEmailService{
 	private Configuration freemarkerConfig;
 	
 	@Override
-	public void enviar(Mensagem mensagem) {
+	public boolean enviar(Mensagem mensagem) {
 		try {
 			MimeMessage mimeMessage = mailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
@@ -43,7 +43,7 @@ public class SmtpSendEmailService implements SendEmailService{
 			helper.setText(corpo,true);
 			
 			mailSender.send(mimeMessage);
-			
+			return true;
 		}catch (Exception e) {
 			throw new GenericExcpetion("Não foi possivel enviar o e-mail" + e.getMessage());
 		}

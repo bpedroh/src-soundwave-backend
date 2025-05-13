@@ -10,7 +10,7 @@ import lombok.Getter;
 
 public interface SendEmailService {
 	
-void enviar(Mensagem mensagem);
+boolean enviar(Mensagem mensagem);
 	
 
 	@Builder
