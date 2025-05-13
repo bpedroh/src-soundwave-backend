@@ -19,6 +19,7 @@ public class ConfirmationTokenController {
 	@GetMapping("/validate-token/{id}")
 	public void validateEmailToken(@RequestBody int token, @PathVariable long id) {
 		confirmationTokenService.validateEmailToken(token, id);
+		
 	}
 	
 }

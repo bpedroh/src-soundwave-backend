@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.br.soundwave.Core.Exceptions.GenericExcpetion;
 import com.br.soundwave.Core.Model.ClientModel;
 import com.br.soundwave.Core.Repository.ClientRepository;
 import com.br.soundwave.Core.Services.SendEmailService.Mensagem;
@@ -26,22 +27,35 @@ public class ClientService {
 	
 	
 	@Transactional
-	public void saveClient(ClientModel client) {
+	public boolean saveClient(ClientModel client) {
 		
 		if(verfifyEmailDisponibility(client.getEmail())) {
 			
 			client.setTokenEmail(confirmationTokenService.generateEmailToken());
 			
+			if(clientRepository.save(client) != null) {
+				return true;
+			}
+			
+		}
+		return false;
+	}
+	
+	public boolean sendConfirmEmail(ClientModel client) {
+		try {
 			var mensagem = Mensagem.builder()
 					.assunto("Confirmar Conta")
 					.destinatario(client.getEmail())
 					.var(Map.of("client", client))
-					.corpo("test.html").build();
-
-			emailService.enviar(mensagem);
+					.corpo("confirm-email.html").build();
 			
-			clientRepository.save(client);
+					if(emailService.enviar(mensagem)) {
+						return true;
+					}
+		}catch (Exception e) {
+			throw new GenericExcpetion("Falha para popular dados do email" + e);
 		}
+		return false;
 	}
 	
 	@Transactional
@@ -60,6 +74,22 @@ public class ClientService {
 			return true;
 		}
 		return false;
+	}
+	
+	public void sendChangePasswordEmail(String email) {
+		
+		ClientModel client = clientRepository.findByEmail(email);
+		
+		if(client != null) {
+			var mensagem = Mensagem.builder()
+					.assunto("Mudança de senha")
+					.destinatario(client.getEmail())
+					.var(Map.of("client", client))
+					.corpo("forgot-password.html").build();
+
+			emailService.enviar(mensagem);
+		}
+		
 	}
 	
 }

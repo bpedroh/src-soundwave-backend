@@ -38,5 +38,9 @@ public class ClientModel {
 	    private boolean emailverified = false;
 	    
 	    private int tokenEmail;
+	    
+	    private String totpSecret;
+	    
+	    private boolean mfaEnabled = false;
 }
 
