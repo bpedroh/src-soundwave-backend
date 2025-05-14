@@ -17,6 +17,7 @@ import com.br.soundwave.Core.Services.ClientService;
 import com.br.soundwave.Core.Services.TokenService;
 import com.br.soundwave.api.ModelDto.EmailModelDTO;
 import com.br.soundwave.api.ModelDto.LoginModelDTO;
+import com.br.soundwave.api.ModelDto.RegisterModelDTO;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -47,9 +48,10 @@ public class ClientController {
 	}
 	
 	@PostMapping("/register")
-	public ResponseEntity<?> createClient(@RequestBody ClientModel client) {
-		if(clientService.saveClient(client)) {
-			if(!clientService.sendConfirmEmail(client)) {
+	public ResponseEntity<?> createClient(@RequestBody RegisterModelDTO client) {
+		ClientModel clientModel = clientService.saveClient(client);
+		if(clientModel != null) {
+			if(!clientService.sendConfirmEmail(clientModel)) {
 				return ResponseEntity.status(401).body("Erro enviar o email.");
 			}
 		}else {

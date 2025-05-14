@@ -35,17 +35,20 @@ public class SessionValidationFilter extends OncePerRequestFilter{
 			throws ServletException, IOException {
 		
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
-		HttpServletResponse httpResponse = (HttpServletResponse) response;
+		
 		
 		String sessionToken = null;
 
 		String path = httpRequest.getRequestURI();
-		System.out.println(path);
 
 	    if (path.startsWith("/client/login") || 
 	        path.startsWith("/client/register") || 
 	        path.startsWith("/client/change-password/") || 
-	        path.startsWith("/client/change-password-email")) {
+	        path.startsWith("/client/change-password-email") ||
+	        path.startsWith("/token/validate-token") ||
+	        path.startsWith("/mfa/setup") ||
+	        path.startsWith("/mfa/validate") 
+	    		) {
 	        filterChain.doFilter(request, response);
 	        return;
 	    }
@@ -66,7 +69,7 @@ public class SessionValidationFilter extends OncePerRequestFilter{
 	            filterChain.doFilter(request, response);
 	        }
 	    } catch (NotConfirmedEmailExcpetion ex) {
-	        response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT); // ou outro status como 401, 403
+	        response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
 	        response.setContentType("application/json");
 	        response.getWriter().write("{\"error\": \"" + ex.getMessage() + "\"}");
 	    } catch (NotUsingMFAExcpetion ex) {
@@ -80,7 +83,7 @@ public class SessionValidationFilter extends OncePerRequestFilter{
 	    } catch (Exception ex) {
 	        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 	        response.setContentType("application/json");
-	        response.getWriter().write("{\"error\": \"Erro interno do servidor\"}");
+	        response.getWriter().write("{\"error\": \"Sessão expirada, realize login novamente.\"}");
 	    }
 	} 
 		
