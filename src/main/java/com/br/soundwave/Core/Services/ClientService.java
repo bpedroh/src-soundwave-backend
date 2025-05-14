@@ -13,6 +13,7 @@ import com.br.soundwave.Core.Model.SessionManagerModel;
 import com.br.soundwave.Core.Repository.ClientRepository;
 import com.br.soundwave.Core.Services.SendEmailService.Mensagem;
 import com.br.soundwave.api.ModelDto.LoginModelDTO;
+import com.br.soundwave.api.ModelDto.RegisterModelDTO;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -35,18 +36,25 @@ public class ClientService {
 	
 	
 	@Transactional
-	public boolean saveClient(ClientModel client) {
+	public ClientModel saveClient(RegisterModelDTO clientDTO) {
 		
-		if(verfifyEmailDisponibility(client.getEmail())) {
+		
+		if(verfifyEmailDisponibility(clientDTO.getUsername())) {
+			if(clientDTO.getPassword().equals(clientDTO.getConfirmPassword())) {
+				ClientModel client = new ClientModel();
+				client.setEmail(clientDTO.getUsername());
+				client.setClientName(clientDTO.getName());
+				client.setClientPassword(clientDTO.getPassword());
+				client.setTokenEmail(confirmationTokenService.generateEmailToken());
+				
+				return clientRepository.save(client);
+				
 			
-			client.setTokenEmail(confirmationTokenService.generateEmailToken());
-			
-			if(clientRepository.save(client) != null) {
-				return true;
-			}
 			
 		}
-		return false;
+	  }
+		  
+		return null;
 	}
 	
 	public boolean sendConfirmEmail(ClientModel client) {

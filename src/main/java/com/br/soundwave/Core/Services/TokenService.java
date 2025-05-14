@@ -12,6 +12,9 @@ import com.br.soundwave.Core.Exceptions.GenericExcpetion;
 import com.br.soundwave.Core.Model.ClientModel;
 import com.br.soundwave.Core.Model.SessionManagerModel;
 import com.br.soundwave.Core.Repository.ClientRepository;
+import com.br.soundwave.api.ModelDto.TokenModelDTO;
+
+import jakarta.transaction.Transactional;
 
 
 @Component
@@ -26,19 +29,22 @@ public class TokenService {
 		 return value;
 	}
 	
-	
-	public boolean  validateEmailToken(int token, Long id) {
-		Optional<ClientModel> client = clientRepository.findById(id);
+	@Transactional
+	public boolean  validateEmailToken(TokenModelDTO tokenDTO, Long id) {
+		int token = tokenDTO.getToken();
+		ClientModel client = clientRepository.findById(id).orElseThrow(() -> new GenericExcpetion("Não foi possivel identificar o cliente"));
 		if(client != null) {
-			if(client.get().getTokenEmail() == token) {
-				client.get().setEmailVerified(true);
-				
-				return true;
-			}else {
-				throw new GenericExcpetion("Código incorreto");
+			if(client.isEmailVerified() == false) {
+				if(client.getTokenEmail() == token) {
+					client.setEmailVerified(true);
+					clientRepository.save(client);
+					return true;
+				}else {
+					throw new GenericExcpetion("Código incorreto");
+				}
 			}
-		}else { throw new GenericExcpetion("Id não encontrado");}
-		
+		}
+		return false;
 	}
 	
 	public String generateSessionToken() {
