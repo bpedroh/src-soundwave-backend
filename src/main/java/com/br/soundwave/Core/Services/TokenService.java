@@ -1,6 +1,6 @@
 package com.br.soundwave.Core.Services;
 
-import java.time.LocalDateTime;
+
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
@@ -10,18 +10,12 @@ import org.springframework.stereotype.Component;
 
 import com.br.soundwave.Core.Exceptions.GenericExcpetion;
 import com.br.soundwave.Core.Model.ClientModel;
-import com.br.soundwave.Core.Model.ConfirmationTokenModel;
+import com.br.soundwave.Core.Model.SessionManagerModel;
 import com.br.soundwave.Core.Repository.ClientRepository;
-import com.br.soundwave.Core.Repository.ConfirmationTokenRepository;
+
 
 @Component
-public class ConfirmationTokenService {
-
-	
-	private ConfirmationTokenModel confirmationTokenModel;
-	
-	@Autowired
-	private ConfirmationTokenRepository confirmationTokenRepository;
+public class TokenService {
 	
 	@Autowired
 	private ClientRepository clientRepository;
@@ -33,11 +27,13 @@ public class ConfirmationTokenService {
 	}
 	
 	
-	public void validateEmailToken(int token, Long id) {
+	public boolean  validateEmailToken(int token, Long id) {
 		Optional<ClientModel> client = clientRepository.findById(id);
 		if(client != null) {
 			if(client.get().getTokenEmail() == token) {
-				client.get().setEmailverified(true);
+				client.get().setEmailVerified(true);
+				
+				return true;
 			}else {
 				throw new GenericExcpetion("Código incorreto");
 			}
@@ -45,11 +41,17 @@ public class ConfirmationTokenService {
 		
 	}
 	
-	public void generateToken(ClientModel client) {
-		confirmationTokenModel.setClient(client);
-		confirmationTokenModel.setToken(UUID.randomUUID().toString());
-		confirmationTokenModel.setExpireIn(LocalDateTime.now().plusHours(1));
-		confirmationTokenRepository.save(confirmationTokenModel);
+	public String generateSessionToken() {
+		UUID token = UUID.randomUUID();
+		return token.toString();
 	}
+	
+	public boolean validateSession(SessionManagerModel session) {
+		
+	
+		
+		return false;
+	}
+	
 	
 }

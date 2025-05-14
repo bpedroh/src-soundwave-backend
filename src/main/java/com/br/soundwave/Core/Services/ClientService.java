@@ -7,10 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.br.soundwave.Core.Exceptions.GenericExcpetion;
+import com.br.soundwave.Core.Exceptions.UserNotFoundException;
 import com.br.soundwave.Core.Model.ClientModel;
+import com.br.soundwave.Core.Model.SessionManagerModel;
 import com.br.soundwave.Core.Repository.ClientRepository;
 import com.br.soundwave.Core.Services.SendEmailService.Mensagem;
+import com.br.soundwave.api.ModelDto.LoginModelDTO;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 
 @Component
@@ -23,7 +28,7 @@ public class ClientService {
 	private SendEmailService emailService;
 	
 	@Autowired
-	private ConfirmationTokenService confirmationTokenService;
+	private TokenService confirmationTokenService;
 	
 	
 	@Transactional
@@ -82,7 +87,7 @@ public class ClientService {
 		
 		if(client != null) {
 			var mensagem = Mensagem.builder()
-					.assunto("Mudança de senha")
+					.assunto("Recuperação de senha")
 					.destinatario(client.getEmail())
 					.var(Map.of("client", client))
 					.corpo("forgot-password.html").build();
@@ -91,5 +96,29 @@ public class ClientService {
 		}
 		
 	}
+	
+	public boolean requestLogin(LoginModelDTO login, HttpServletResponse response) {
+		ClientModel client = clientRepository.findByEmail(login.getUsername());
+		if(client.getEmail() == null) {
+			throw new UserNotFoundException("Login ou Senha inválidas");
+		}else if (client.getEmail() == login.getUsername() && client.getClientPassword() == login.getPassword()) {
+			SessionManagerModel session = new SessionManagerModel();
+			String token = confirmationTokenService.generateSessionToken();
+			session.createSession(token, client.getId());
+			
+			Cookie cookie = new Cookie("SESSION_ID", token);
+		    cookie.setHttpOnly(true);
+		    cookie.setSecure(true);
+		    cookie.setPath("/");
+		    cookie.setMaxAge(3600);
+		    response.addCookie(cookie);
+			
+			return true;
+		}else {
+			throw new UserNotFoundException("Login ou Senha inválidas");
+		}
+		
+	}
+	
 	
 }
