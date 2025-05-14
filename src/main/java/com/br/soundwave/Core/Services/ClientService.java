@@ -30,6 +30,9 @@ public class ClientService {
 	@Autowired
 	private TokenService confirmationTokenService;
 	
+	@Autowired
+	private SessionManagerService managerService;
+	
 	
 	@Transactional
 	public boolean saveClient(ClientModel client) {
@@ -99,12 +102,11 @@ public class ClientService {
 	
 	public boolean requestLogin(LoginModelDTO login, HttpServletResponse response) {
 		ClientModel client = clientRepository.findByEmail(login.getUsername());
-		if(client.getEmail() == null) {
-			throw new UserNotFoundException("Login ou Senha inválidas");
-		}else if (client.getEmail() == login.getUsername() && client.getClientPassword() == login.getPassword()) {
-			SessionManagerModel session = new SessionManagerModel();
-			String token = confirmationTokenService.generateSessionToken();
-			session.createSession(token, client.getId());
+		
+		if (client.getEmail().equals(login.getUsername()) && client.getClientPassword().equals(login.getPassword())) {
+			
+			SessionManagerModel session = managerService.createSession(client);
+			String token = session.getSessionId().toString();
 			
 			Cookie cookie = new Cookie("SESSION_ID", token);
 		    cookie.setHttpOnly(true);
@@ -114,6 +116,9 @@ public class ClientService {
 		    response.addCookie(cookie);
 			
 			return true;
+			
+		}if(client.getEmail() == null) {
+			throw new UserNotFoundException("Login ou Senha inválidas");
 		}else {
 			throw new UserNotFoundException("Login ou Senha inválidas");
 		}

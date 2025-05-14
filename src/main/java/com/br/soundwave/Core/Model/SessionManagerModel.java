@@ -4,54 +4,33 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
 
-
-class SessionData{
-	
-	private Long userId;
-    private Instant expirationTime;
-
-    public SessionData(Long userId, Instant duration) {
-        this.userId = userId;
-        this.expirationTime = duration;
-    }
-    
-    public boolean isExpired() {
-        return Instant.now().isAfter(expirationTime);
-    }
-    
-    public Long getUserId() {
-        return userId;
-    }
-}
-
 @Getter
 @Setter
+@Entity(name = "gereciador_sessao")
 public class SessionManagerModel {
 	
-	private Map<String, SessionData> sessions = new ConcurrentHashMap<>();
+	@Id
+	private UUID sessionId = UUID.randomUUID();
 	
-	public void createSession(String token, Long userId) {
-		Instant expirationTime = Instant.now().plus(Duration.ofHours(1));
-        sessions.put(token, new SessionData(userId, expirationTime));
-    }
+	@OneToOne
+	@JoinColumn(nullable = false, name = "client_id", referencedColumnName = "id")
+	private ClientModel client;
 	
-	public Long getUserIdFromToken(String token) {
-        SessionData session = sessions.get(token);
-        if (session == null || session.isExpired()) {
-            sessions.remove(token);
-            return null;
-        }
-        return session.getUserId();
-    }
+	private Instant expirationTime = Instant.now().plus(Duration.ofHours(1));
 	
-	public void invalidate(String token) {
-        sessions.remove(token);
-    }
-	
+	private boolean isValid = false;
+		
 	
 }

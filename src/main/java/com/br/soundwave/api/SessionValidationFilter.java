@@ -8,10 +8,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.br.soundwave.Core.Exceptions.GenericExcpetion;
+import com.br.soundwave.Core.Exceptions.NotConfirmedEmailExcpetion;
 import com.br.soundwave.Core.Exceptions.NotUsingMFAExcpetion;
 import com.br.soundwave.Core.Model.ClientModel;
 import com.br.soundwave.Core.Model.SessionManagerModel;
 import com.br.soundwave.Core.Repository.ClientRepository;
+import com.br.soundwave.Core.Services.SessionManagerService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,6 +26,9 @@ public class SessionValidationFilter extends OncePerRequestFilter{
 	
 	@Autowired
 	private ClientRepository clientRepository;
+	
+	@Autowired
+	private SessionManagerService managerService;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -35,11 +40,12 @@ public class SessionValidationFilter extends OncePerRequestFilter{
 		String sessionToken = null;
 
 		String path = httpRequest.getRequestURI();
+		System.out.println(path);
 
-	    if (path.startsWith("/login") || 
-	        path.startsWith("/register") || 
-	        path.startsWith("/validate-email") || 
-	        path.startsWith("/forgot-password")) {
+	    if (path.startsWith("/client/login") || 
+	        path.startsWith("/client/register") || 
+	        path.startsWith("/client/change-password/") || 
+	        path.startsWith("/client/change-password-email")) {
 	        filterChain.doFilter(request, response);
 	        return;
 	    }
@@ -52,46 +58,51 @@ public class SessionValidationFilter extends OncePerRequestFilter{
 	            }
 	        }
 	    }
-
-	    try {
-			if (sessionToken == null || !isSessionValid(sessionToken)) {
-			    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			    response.getWriter().write("Sessao invalida ou expirada.");
-			    return;
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	    
-	    filterChain.doFilter(request, response);
+	    System.out.print(sessionToken);
+	    
+	    try {
+	        if (isSessionValid(sessionToken)) {
+	            filterChain.doFilter(request, response);
+	        }
+	    } catch (NotConfirmedEmailExcpetion ex) {
+	        response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT); // ou outro status como 401, 403
+	        response.setContentType("application/json");
+	        response.getWriter().write("{\"error\": \"" + ex.getMessage() + "\"}");
+	    } catch (NotUsingMFAExcpetion ex) {
+	        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+	        response.setContentType("application/json");
+	        response.getWriter().write("{\"error\": \"" + ex.getMessage() + "\"}");
+	    } catch (GenericExcpetion ex) {
+	        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+	        response.setContentType("application/json");
+	        response.getWriter().write("{\"error\": \"" + ex.getMessage() + "\"}");
+	    } catch (Exception ex) {
+	        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+	        response.setContentType("application/json");
+	        response.getWriter().write("{\"error\": \"Erro interno do servidor\"}");
+	    }
 	} 
 		
-	
 	private boolean isSessionValid(String token) throws Exception {
-        SessionManagerModel session = new SessionManagerModel();
-        try {
-        	Long id = session.getUserIdFromToken(token);
-        	if(id != null) {
-        		Optional<ClientModel> client = clientRepository.findById(id);
-        		if(client.isPresent()) {
-        			if(client.get().isEmailVerified()) {
-        				if(client.get().isMfaEnabled()) {
-        					return true;
-        				}else {
-        					throw new NotUsingMFAExcpetion("Para continuar com essa requisição, é necessário utiilizar MFA");
-        				}
-        			}else {
-        				throw new GenericExcpetion("Email não confirmado");
-        			}
-        		}else {
-        			throw new GenericExcpetion("Sessão invalida.");
-        		}
+        Long id = managerService.getClientIdByToken(token);
+        
+        	if(id == null) {
+        		throw new GenericExcpetion("Sessão invalida.");
         	}
-        }catch (Exception e) {
-			throw new Exception("Err:" + e);
-		}
-		return false;
+        	
+        	ClientModel client = clientRepository.findById(id).orElseThrow(() -> new GenericExcpetion("Sessao invalida"));
+        	
+        	 if (!client.isEmailVerified()) {
+        	        throw new NotConfirmedEmailExcpetion("Você deve confirmar seu e-mail para acessar essa página.");
+        	    }
+        	 
+        	 if (!client.isMfaEnabled()) {
+        	        throw new NotUsingMFAExcpetion("Para continuar com essa requisição, é necessário utilizar MFA.");
+        	    }
+        	
+        
+		return true;
         
     }
 }

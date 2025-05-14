@@ -50,13 +50,16 @@ public class ClientController {
 	public ResponseEntity<?> createClient(@RequestBody ClientModel client) {
 		if(clientService.saveClient(client)) {
 			if(!clientService.sendConfirmEmail(client)) {
-				client.setEmailVerified(false);
-				return ResponseEntity.status(401).body("Erro para confirmar o email");
+				return ResponseEntity.status(401).body("Erro enviar o email.");
 			}
 		}else {
 			return ResponseEntity.status(401).body("Erro ao realizar o cadastro, verifique as informações passadas.");
 		}
 		return ResponseEntity.status(200).body("Cadastro realizado com sucesso.");
+	}
+	
+	public void validateEmail() {
+		
 	}
 	
 	@PostMapping("/change-password/{id}")
