@@ -1,4 +1,4 @@
-package com.br.soundwave.api.controller;
+package com.br.soundwave.api.Controller;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,18 +14,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.br.soundwave.Core.Repository.ClientRepository;
 import com.br.soundwave.Core.Services.ClientService;
-import com.br.soundwave.Core.Services.ConfirmationTokenService;
+import com.br.soundwave.Core.Services.TokenService;
 import com.br.soundwave.api.ModelDto.EmailModelDTO;
+import com.br.soundwave.api.ModelDto.LoginModelDTO;
+
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
 import com.br.soundwave.Core.Model.ClientModel;
 
 @RestController
 @RequestMapping("/client")
 public class ClientController {
 	
-	private ClientModel clientEntity;
-	
 	@Autowired
-	private ConfirmationTokenService confirmationTokenService;
+	private TokenService tokenService;
 	
 	@Autowired
 	private ClientService clientService;
@@ -33,21 +36,22 @@ public class ClientController {
 	@Autowired
 	private ClientRepository clientRepository;
 	
-	@GetMapping("/listar-todos")
+	@GetMapping("/find-all")
 	public List<ClientModel> listarTodos(){
 		return clientRepository.findAll();
 	}
 	
-	@GetMapping("/buscar-por/{id}")
+	@GetMapping("/find-by/{id}")
 	public Optional<ClientModel> findClientById(@PathVariable long id) {
 		return clientRepository.findById(id);
 	}
 	
-	@PostMapping("/criar-user")
+	@PostMapping("/register")
 	public ResponseEntity<?> createClient(@RequestBody ClientModel client) {
 		if(clientService.saveClient(client)) {
-			if(clientService.sendConfirmEmail(client)) {
-				
+			if(!clientService.sendConfirmEmail(client)) {
+				client.setEmailVerified(false);
+				return ResponseEntity.status(401).body("Erro para confirmar o email");
 			}
 		}else {
 			return ResponseEntity.status(401).body("Erro ao realizar o cadastro, verifique as informações passadas.");
@@ -55,14 +59,19 @@ public class ClientController {
 		return ResponseEntity.status(200).body("Cadastro realizado com sucesso.");
 	}
 	
-	@PostMapping("/trocar-senha/{id}")
+	@PostMapping("/change-password/{id}")
 	public void changeClientPassword(@PathVariable Long id, @RequestBody String newPassword, String oldPassword) {
 		clientService.changePassword(id, oldPassword, newPassword);
 	}
 	
-	@PostMapping("/trocar-senha-email")
+	@PostMapping("/change-password-email")
 	public void sendEmailToChangePassword(@RequestBody EmailModelDTO email) {
 		clientService.sendChangePasswordEmail(email.getEmail());
+	}
+	
+	@PostMapping("/login")
+	public void login(@RequestBody LoginModelDTO loginRequest, HttpServletResponse session) {
+		clientService.requestLogin(loginRequest, session);
 	}
 	
 }

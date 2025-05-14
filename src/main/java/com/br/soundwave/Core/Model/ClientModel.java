@@ -35,7 +35,7 @@ public class ClientModel {
 	    private LocalDateTime clientCreatedAt = LocalDateTime.now();
 	    
 	    @Column(name = "email_verified")
-	    private boolean emailverified = false;
+	    private boolean emailVerified = false;
 	    
 	    private int tokenEmail;
 	    
