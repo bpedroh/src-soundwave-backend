@@ -34,9 +34,10 @@ public class TokenService {
 		int token = tokenDTO.getToken();
 		ClientModel client = clientRepository.findById(id).orElseThrow(() -> new GenericExcpetion("Não foi possivel identificar o cliente"));
 		if(client != null) {
-			if(client.isEmailVerified() == false) {
+			if(client.isEmailVerified() == false || client.getTokenEmail() == 0) {
 				if(client.getTokenEmail() == token) {
 					client.setEmailVerified(true);
+					client.setTokenEmail(0);
 					clientRepository.save(client);
 					return true;
 				}else {

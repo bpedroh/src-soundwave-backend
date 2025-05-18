@@ -79,4 +79,8 @@ public class ClientController {
 		clientService.requestLogin(loginRequest, session);
 	}
 	
+	public void logout() {
+		clientService.logout(null);
+	}
+	
 }

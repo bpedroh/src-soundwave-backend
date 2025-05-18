@@ -37,7 +37,7 @@ public class ClientModel {
 	    @Column(name = "email_verified")
 	    private boolean emailVerified = false;
 	    
-	    private int tokenEmail;
+	    private Integer tokenEmail;
 	    
 	    private String totpSecret;
 	    
