@@ -48,8 +48,6 @@ public class ClientService {
 				client.setTokenEmail(confirmationTokenService.generateEmailToken());
 				
 				return clientRepository.save(client);
-				
-			
 			
 		}
 	  }
@@ -130,6 +128,10 @@ public class ClientService {
 		}else {
 			throw new UserNotFoundException("Login ou Senha inválidas");
 		}
+		
+	}
+	
+	public void logout(Long id) {
 		
 	}
 	

@@ -44,6 +44,7 @@ public class SmtpSendEmailService implements SendEmailService{
 			
 			mailSender.send(mimeMessage);
 			return true;
+			
 		}catch (Exception e) {
 			throw new GenericExcpetion("Não foi possivel enviar o e-mail" + e.getMessage());
 		}
