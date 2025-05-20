@@ -1,5 +1,6 @@
 package com.br.soundwave.Core.Services;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -18,6 +19,7 @@ import com.br.soundwave.api.ModelDto.RegisterModelDTO;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import org.mindrot.jbcrypt.BCrypt;
 
 @Component
 public class ClientService {
@@ -40,27 +42,30 @@ public class ClientService {
 		
 		
 		if(verfifyEmailDisponibility(clientDTO.getUsername())) {
-			if(clientDTO.getPassword().equals(clientDTO.getConfirmPassword())) {
 				ClientModel client = new ClientModel();
 				client.setEmail(clientDTO.getUsername());
 				client.setClientName(clientDTO.getName());
-				client.setClientPassword(clientDTO.getPassword());
+				client.setClientPassword(hashPassword(clientDTO.getPassword()));
 				client.setTokenEmail(confirmationTokenService.generateEmailToken());
 				
 				return clientRepository.save(client);
-			
-		}
+		
 	  }
 		  
 		return null;
 	}
 	
 	public boolean sendConfirmEmail(ClientModel client) {
+		String confirmationLink = "http://localhost:5173/confirmar-email/"+ client.getId() + "/" + client.getTokenEmail();
 		try {
+			 Map<String, Object> variaveis = new HashMap<>();
+		        variaveis.put("confirmationLink", confirmationLink);
+		        variaveis.put("client", client);
+		        
 			var mensagem = Mensagem.builder()
 					.assunto("Confirmar Conta")
 					.destinatario(client.getEmail())
-					.var(Map.of("client", client))
+					.var(variaveis)
 					.corpo("confirm-email.html").build();
 			
 					if(emailService.enviar(mensagem)) {
@@ -109,18 +114,18 @@ public class ClientService {
 	public boolean requestLogin(LoginModelDTO login, HttpServletResponse response) {
 		ClientModel client = clientRepository.findByEmail(login.getUsername());
 		
-		if (client.getEmail().equals(login.getUsername()) && client.getClientPassword().equals(login.getPassword())) {
-			
+		if (client.getEmail().equals(login.getUsername()) && checkPassword(login.getPassword(), client.getClientPassword()) && client.isEmailVerified() ) {
+		
 			SessionManagerModel session = managerService.createSession(client);
 			String token = session.getSessionId().toString();
 			
 			Cookie cookie = new Cookie("SESSION_ID", token);
 		    cookie.setHttpOnly(true);
-		    cookie.setSecure(true);
+		    cookie.setSecure(false);
 		    cookie.setPath("/");
 		    cookie.setMaxAge(3600);
+		    cookie.setDomain("localhost"); 
 		    response.addCookie(cookie);
-			
 			return true;
 			
 		}if(client.getEmail() == null) {
@@ -130,6 +135,15 @@ public class ClientService {
 		}
 		
 	}
+	
+
+	public static String hashPassword(String password) {
+        return BCrypt.hashpw(password, BCrypt.gensalt(10));
+    }
+
+    public static boolean checkPassword(String candidate, String hashed) {
+        return BCrypt.checkpw(candidate, hashed);
+    }
 	
 	public void logout(Long id) {
 		
