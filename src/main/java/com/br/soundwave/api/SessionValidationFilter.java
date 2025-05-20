@@ -40,7 +40,7 @@ public class SessionValidationFilter extends OncePerRequestFilter{
 		String sessionToken = null;
 
 		String path = httpRequest.getRequestURI();
-
+	
 	    if (path.startsWith("/client/login") || 
 	        path.startsWith("/client/register") || 
 	        path.startsWith("/client/change-password/") || 

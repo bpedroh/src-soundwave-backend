@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -25,8 +26,8 @@ public class TokenController {
 	@Autowired
 	private MFAService mfaService;
 	
-	@PostMapping("/validate-token/{id}")
-	public ResponseEntity<?> validateEmailToken(@RequestBody TokenModelDTO token, @PathVariable long id) {
+	@PostMapping("/validate-token/{id}/{token}")
+	public ResponseEntity<?> validateEmailToken(@PathVariable long id, @PathVariable int token) {
 		if(confirmationTokenService.validateEmailToken(token, id)) {
 			return ResponseEntity.status(200).body("e-mail confirmado com sucesso!");
 		}

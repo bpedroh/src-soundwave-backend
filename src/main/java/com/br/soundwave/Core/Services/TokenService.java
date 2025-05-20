@@ -30,12 +30,12 @@ public class TokenService {
 	}
 	
 	@Transactional
-	public boolean  validateEmailToken(TokenModelDTO tokenDTO, Long id) {
-		int token = tokenDTO.getToken();
+	public boolean  validateEmailToken(int tokenDTO, Long id) {
+		
 		ClientModel client = clientRepository.findById(id).orElseThrow(() -> new GenericExcpetion("Não foi possivel identificar o cliente"));
 		if(client != null) {
-			if(client.isEmailVerified() == false || client.getTokenEmail() == 0) {
-				if(client.getTokenEmail() == token) {
+			if(client.isEmailVerified() == false || client.getTokenEmail() != 0) {
+				if(client.getTokenEmail() == tokenDTO) {
 					client.setEmailVerified(true);
 					client.setTokenEmail(0);
 					clientRepository.save(client);
@@ -52,6 +52,8 @@ public class TokenService {
 		UUID token = UUID.randomUUID();
 		return token.toString();
 	}
+	
+	
 	
 	public boolean validateSession(SessionManagerModel session) {
 		
