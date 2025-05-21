@@ -12,6 +12,7 @@ import com.br.soundwave.Core.Exceptions.GenericExcpetion;
 import com.br.soundwave.Core.Model.ClientModel;
 import com.br.soundwave.Core.Model.SessionManagerModel;
 import com.br.soundwave.Core.Repository.ClientRepository;
+import com.br.soundwave.Core.Repository.SessionManagerRepository;
 import com.br.soundwave.api.ModelDto.TokenModelDTO;
 
 import jakarta.transaction.Transactional;
@@ -22,6 +23,9 @@ public class TokenService {
 	
 	@Autowired
 	private ClientRepository clientRepository;
+	
+	@Autowired
+	private SessionManagerRepository managerRepository;
 	
 	public int generateEmailToken() {
 		Random random = new Random();
@@ -55,9 +59,9 @@ public class TokenService {
 	
 	
 	
-	public boolean validateSession(SessionManagerModel session) {
-		
-	
+	public boolean validateSession(String sessionId) {
+
+
 		
 		return false;
 	}

@@ -5,8 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class EmailModelDTO {
-	
-	private String username;
-	
+
+public class ClientDTO {
+	private Long id;
+	private String email;
+	private String nome;
 }

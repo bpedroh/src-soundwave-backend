@@ -5,8 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class EmailModelDTO {
-	
-	private String username;
-	
+public class ChangePasswordDTO {
+	private String newPassword;
 }

@@ -45,7 +45,9 @@ public class SessionValidationFilter extends OncePerRequestFilter{
 	        path.startsWith("/client/register") || 
 	        path.startsWith("/client/change-password/") || 
 	        path.startsWith("/client/change-password-email") ||
+	        path.startsWith("/client/find-by-email") ||
 	        path.startsWith("/token/validate-token") ||
+	        path.startsWith("/token/check-auth") ||
 	        path.startsWith("/mfa/setup") ||
 	        path.startsWith("/mfa/validate") 
 	    		) {
