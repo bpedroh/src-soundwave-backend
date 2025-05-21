@@ -64,6 +64,10 @@ public class SessionManagerService {
 	    managerRepository.deleteAllByExpirationTimeBefore(now);
 	}
 	
+	public void removeSession(String sessionId) {
+		UUID uuid = UUID.fromString(sessionId);
+		managerRepository.deleteById(uuid);
+	}
 	
 
 }

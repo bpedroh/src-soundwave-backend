@@ -4,20 +4,25 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.br.soundwave.Core.Repository.ClientRepository;
 import com.br.soundwave.Core.Services.ClientService;
+import com.br.soundwave.Core.Services.SessionManagerService;
 import com.br.soundwave.Core.Services.TokenService;
 import com.br.soundwave.api.ModelDto.EmailModelDTO;
 import com.br.soundwave.api.ModelDto.LoginModelDTO;
 import com.br.soundwave.api.ModelDto.RegisterModelDTO;
+import com.br.soundwave.api.ModelDto.ChangePasswordDTO;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -47,6 +52,11 @@ public class ClientController {
 		return clientRepository.findById(id);
 	}
 	
+	@GetMapping("/find-by-email")
+	public ClientModel findClientByEmail(@RequestParam("email") String email) {
+		return clientRepository.findByEmail(email);
+	}
+	
 	@PostMapping("/register")
 	public ResponseEntity<?> createClient(@RequestBody RegisterModelDTO client) {
 		ClientModel clientModel = clientService.saveClient(client);
@@ -65,13 +75,13 @@ public class ClientController {
 	}
 	
 	@PostMapping("/change-password/{id}")
-	public void changeClientPassword(@PathVariable Long id, @RequestBody String newPassword, String oldPassword) {
-		clientService.changePassword(id, oldPassword, newPassword);
+	public void changeClientPassword(@PathVariable Long id, @RequestBody ChangePasswordDTO newPassword) {
+		clientService.changePassword(id, newPassword);
 	}
 	
 	@PostMapping("/change-password-email")
 	public void sendEmailToChangePassword(@RequestBody EmailModelDTO email) {
-		clientService.sendChangePasswordEmail(email.getEmail());
+		clientService.sendChangePasswordEmail(email.getUsername());
 	}
 	
 	@PostMapping("/login")
@@ -79,8 +89,13 @@ public class ClientController {
 		clientService.requestLogin(loginRequest, session);
 	}
 	
-	public void logout() {
-		clientService.logout(null);
+	@PostMapping("/logout")
+	public ResponseEntity<?> logout(@CookieValue(name = "SESSION_ID", required=false) String sessionId, HttpServletResponse session) {
+		if(sessionId == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
+		clientService.logout(sessionId, session);
+		return ResponseEntity.ok("Logout realizado");
 	}
 	
 }

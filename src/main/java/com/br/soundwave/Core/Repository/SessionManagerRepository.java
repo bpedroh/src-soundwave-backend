@@ -11,5 +11,4 @@ public interface SessionManagerRepository extends JpaRepository<SessionManagerMo
 	
 	void deleteAllByExpirationTimeBefore(Instant time);
 
-	
-}
+	}

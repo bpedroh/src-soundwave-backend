@@ -13,8 +13,10 @@ import com.br.soundwave.Core.Model.ClientModel;
 import com.br.soundwave.Core.Model.SessionManagerModel;
 import com.br.soundwave.Core.Repository.ClientRepository;
 import com.br.soundwave.Core.Services.SendEmailService.Mensagem;
+import com.br.soundwave.api.ModelDto.ChangePasswordDTO;
 import com.br.soundwave.api.ModelDto.LoginModelDTO;
 import com.br.soundwave.api.ModelDto.RegisterModelDTO;
+
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,10 +39,12 @@ public class ClientService {
 	private SessionManagerService managerService;
 	
 	
+	public ClientModel findClientById(Long id) {
+		return clientRepository.findById(id).orElseThrow(() -> new UserNotFoundException("Cliente não encontrado"));
+	}
+	
 	@Transactional
 	public ClientModel saveClient(RegisterModelDTO clientDTO) {
-		
-		
 		if(verfifyEmailDisponibility(clientDTO.getUsername())) {
 				ClientModel client = new ClientModel();
 				client.setEmail(clientDTO.getUsername());
@@ -78,13 +82,14 @@ public class ClientService {
 	}
 	
 	@Transactional
-	public void changePassword(Long id, String oldPassword, String newPassword) {
-		Optional<ClientModel> client = clientRepository.findById(id);
+	public void changePassword(Long id, ChangePasswordDTO newPassword) {
+		ClientModel client = clientRepository.findById(id).orElseThrow(() -> new UserNotFoundException("Usuario não encontrado"));
+		
+		String newPasswordHash = hashPassword(newPassword.getNewPassword());
+		
 		
 		if (client != null) {
-			if(client.get().getClientPassword() == oldPassword) {
-				client.get().setClientPassword(newPassword);
-			}
+			client.setClientPassword(newPasswordHash);
 		}
 	}
 	
@@ -99,11 +104,17 @@ public class ClientService {
 		
 		ClientModel client = clientRepository.findByEmail(email);
 		
+		String resetUrl = "http://localhost:5173/mudar-senha/" + client.getId();
+		
+		Map<String, Object> variaveis = new HashMap<>();
+        variaveis.put("resetUrl", resetUrl);
+        variaveis.put("client", client);
+		
 		if(client != null) {
 			var mensagem = Mensagem.builder()
 					.assunto("Recuperação de senha")
 					.destinatario(client.getEmail())
-					.var(Map.of("client", client))
+					.var(variaveis)
 					.corpo("forgot-password.html").build();
 
 			emailService.enviar(mensagem);
@@ -114,8 +125,9 @@ public class ClientService {
 	public boolean requestLogin(LoginModelDTO login, HttpServletResponse response) {
 		ClientModel client = clientRepository.findByEmail(login.getUsername());
 		
-		if (client.getEmail().equals(login.getUsername()) && checkPassword(login.getPassword(), client.getClientPassword()) && client.isEmailVerified() ) {
 		
+		if (client.getEmail().equals(login.getUsername()) && checkPassword(login.getPassword(), client.getClientPassword()) && client.isEmailVerified() ) {
+			
 			SessionManagerModel session = managerService.createSession(client);
 			String token = session.getSessionId().toString();
 			
@@ -136,6 +148,16 @@ public class ClientService {
 		
 	}
 	
+	public void logout(String sessionId, HttpServletResponse response) {
+		managerService.removeSession(sessionId);
+		Cookie cookie = new Cookie("SESSION_ID", null);
+	    cookie.setPath("/");
+	    cookie.setDomain("localhost");
+	    cookie.setHttpOnly(true);
+	    cookie.setSecure(false);
+	    cookie.setMaxAge(0); 
+	    response.addCookie(cookie);
+	}
 
 	public static String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt(10));
@@ -145,9 +167,7 @@ public class ClientService {
         return BCrypt.checkpw(candidate, hashed);
     }
 	
-	public void logout(Long id) {
-		
-	}
+	
 	
 	
 }

@@ -21,7 +21,7 @@ public class MfaController {
 	@Autowired
 	private ClientRepository clientRepository;
 	
-
+	
 	 @PostMapping("/setup")
 	    public ResponseEntity<byte[]> setupMFA(@RequestParam Long userId) throws Exception {
 	        ClientModel client = clientRepository.findById(userId).orElseThrow();
