@@ -56,6 +56,7 @@ public class MfaController {
 	        boolean isValid = TOTPGeneratorUtil.validateCode(client.getTotpSecret(), code, 1);
 	        
 	        if (isValid) {
+	        	
 	        	client.setMfaEnabled(true);
 	        	clientRepository.save(client);
 	            return ResponseEntity.ok("Autenticação MFA bem-sucedida!");
