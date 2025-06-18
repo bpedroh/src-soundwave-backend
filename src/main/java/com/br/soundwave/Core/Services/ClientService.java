@@ -45,7 +45,8 @@ public class ClientService {
 	
 	@Transactional
 	public ClientModel saveClient(RegisterModelDTO clientDTO) {
-		if(verfifyEmailDisponibility(clientDTO.getUsername())) {
+		if(verfifyEmailDisponibility(clientDTO.getUsername()))  {
+			if(!clientDTO.getUsername().isEmpty()) {
 				ClientModel client = new ClientModel();
 				client.setEmail(clientDTO.getUsername());
 				client.setClientName(clientDTO.getName());
@@ -53,6 +54,7 @@ public class ClientService {
 				client.setTokenEmail(confirmationTokenService.generateEmailToken());
 				
 				return clientRepository.save(client);
+			}
 		
 	  }
 		  
@@ -127,17 +129,7 @@ public class ClientService {
 		
 		
 		if (client.getEmail().equals(login.getUsername()) && checkPassword(login.getPassword(), client.getClientPassword()) && client.isEmailVerified() ) {
-			
-			SessionManagerModel session = managerService.createSession(client);
-			String token = session.getSessionId().toString();
-			
-			Cookie cookie = new Cookie("SESSION_ID", token);
-		    cookie.setHttpOnly(true);
-		    cookie.setSecure(false);
-		    cookie.setPath("/");
-		    cookie.setMaxAge(3600);
-		    cookie.setDomain("localhost"); 
-		    response.addCookie(cookie);
+
 			return true;
 			
 		}if(client.getEmail() == null) {
