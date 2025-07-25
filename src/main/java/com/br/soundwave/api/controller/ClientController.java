@@ -89,7 +89,7 @@ public class ClientController {
 
 	    System.out.println("Nome: " + nome);
 	    System.out.println("Email: " + email);
-	    System.out.println("Senha hash (bcrypt): " + senhaHash);
+	    System.out.println("Senha hash: " + senhaHash);
 	    
 		RegisterModelDTO client = new RegisterModelDTO();
 		
