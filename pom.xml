@@ -13,7 +13,6 @@
 	<version>0.0.1</version>
 	<name>demo</name>
 	<description>soundwave backend</description>
-	<packaging>war</packaging>
 	<url/>
 	<licenses>
 		<license/>
@@ -138,12 +137,6 @@
 			<artifactId>bcprov-jdk15on</artifactId>
 			<version>1.70</version> 
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-tomcat</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
   		<dependency>
   			<groupId>org.springframework.boot</groupId>
   			<artifactId>
