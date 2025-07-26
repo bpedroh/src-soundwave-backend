@@ -50,6 +50,7 @@ public class SessionValidationFilter extends OncePerRequestFilter{
 	        path.startsWith("/token/check-auth") ||
 	        path.startsWith("/mfa/setup") ||
 	        path.startsWith("/mfa/validate") ||
+	        path.startsWith("/orders/my-orders") ||
 	        path.startsWith("/criptografia/public-key") 
 	    		) {
 	        filterChain.doFilter(request, response);
