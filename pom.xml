@@ -31,8 +31,8 @@
 	</properties>
 	<distributionManagement>
 	  	<repository>
-		    <id>nexus-releases</id>
-		    <url>http://localhost:8081/repository/maven-releases/</url>
+		    <id>SoundwaveBackend</id>
+		    <url>http://localhost:8081/repository/SoundwaveBackend/</url>
 		</repository>
 		  	<snapshotRepository>
 		    <id>nexus-snapshots</id>
