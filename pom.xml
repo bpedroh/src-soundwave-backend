@@ -32,7 +32,7 @@
 	<distributionManagement>
 	  	<repository>
 		    <id>SoundwaveBackend</id>
-		    <url>http://localhost:8081/repository/SoundwaveBackend//</url>
+		    <url>http://localhost:8081/repository/SoundwaveBackend/</url>
 		</repository>
 		  	<snapshotRepository>
 		    <id>nexus-snapshots</id>
