@@ -6,9 +6,9 @@ services:
     image: springboot-app
     build: .
     ports:
-      - 8081:8081
+      - 8082:8082
     environment:
-      SPRING_DATASOURCE_URL: ${DB_URL}
+      SPRING_DATASOURCE_URL: ${DB_DOCKER}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SMTP_USERNAME: ${SMTP_USERNAME}
